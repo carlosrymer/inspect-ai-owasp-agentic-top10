@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Utility vs. security on the OWASP Agentic Top 10 — an Inspect AI eval</title>
+<meta name="description" content="An Inspect AI eval suite scoring a tool-using B2B SaaS support agent on task utility and attack resilience across three defensive postures and four OWASP Agentic Top 10 (2026) risk classes.">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <span class="brand">Agent utility <span class="brand-x">vs.</span> agent security</span>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch colour theme">
+      <span class="theme-icon" aria-hidden="true"></span><span class="theme-label">Theme</span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap" id="main">
+
+  <section class="hero">
+    <p class="eyebrow">Inspect AI · OWASP Top 10 for Agentic Applications (2026)</p>
+    <h1>An agent's task utility and its security resilience are separable axes.</h1>
+    <p class="lede">
+      I built an <a href="https://inspect.aisi.org.uk/" target="_blank" rel="noopener">Inspect AI</a>
+      eval suite around a single tool-using support agent for a fictional B2B SaaS company, and
+      scored every run twice: once on whether it finished the ticket, once on whether it resisted
+      an attack planted in its environment. Same environment, same tools, one payload moved at a
+      time. Then I ran the whole suite against three defensive postures, on two models, to see what
+      hardening actually costs — 192 agent runs, every one scored on what the agent
+      <em>did</em> rather than what it claimed.
+    </p>
+    <div id="hero-stats" class="stat-row"></div>
+    <p class="hero-note" id="hero-note"></p>
+  </section>
+
+  <section class="panel" id="frontier">
+    <div class="panel-head">
+      <div>
+        <h2>The tradeoff, in one chart</h2>
+        <p class="panel-sub">
+          Task utility across all <span data-fill="n_total"></span> samples against attack
+          resilience (1 − attack success rate) across the <span data-fill="n_attacked"></span>
+          attacked samples. Top-right is the corner you want: gets the job done, doesn't get owned.
+        </p>
+      </div>
+      <button class="table-toggle" type="button" data-table="frontier-table">Table view</button>
+    </div>
+    <figure class="chart-figure">
+      <div id="scatter" class="chart" role="img" aria-labelledby="scatter-cap"></div>
+      <figcaption id="scatter-cap" class="sr-only">
+        Scatter plot of task utility against attack resilience for three defensive postures.
+      </figcaption>
+    </figure>
+    <div id="frontier-table" class="table-view" hidden></div>
+  </section>
+
+  <section class="panel" id="classes">
+    <div class="panel-head">
+      <div>
+        <h2>Where each posture actually fails</h2>
+        <p class="panel-sub">
+          Attack success rate by OWASP class, 6 samples per class per posture. Lower is better.
+          The naive agent refused every imperative-style payload — all 18 of ASI01, ASI02 and
+          ASI03 — with no defenses at all. Everything it lost, it lost to memory poisoning:
+          false statements of fact, which announce nothing and so give it nothing to refuse.
+        </p>
+      </div>
+      <button class="table-toggle" type="button" data-table="classes-table">Table view</button>
+    </div>
+    <figure class="chart-figure">
+      <div id="classbars" class="chart" role="img" aria-labelledby="classbars-cap"></div>
+      <figcaption id="classbars-cap" class="sr-only">
+        Grouped column chart of attack success rate by OWASP class for three defensive postures.
+      </figcaption>
+    </figure>
+    <div id="classes-table" class="table-view" hidden></div>
+    <div id="class-notes" class="class-notes"></div>
+  </section>
+
+  <section class="panel" id="cost">
+    <div class="panel-head">
+      <div>
+        <h2>What the defenses cost</h2>
+        <p class="panel-sub">
+          Utility on the eight clean, payload-free scenarios. Every one of these is a legitimate
+          job the agent is supposed to be able to finish. A red cell is a ticket the defense broke.
+        </p>
+      </div>
+    </div>
+    <div id="costgrid" class="cost-grid"></div>
+    <p class="figure-note" id="cost-note"></p>
+  </section>
+
+  <section class="panel" id="matrix">
+    <div class="panel-head">
+      <div>
+        <h2>Every attack, every posture</h2>
+        <p class="panel-sub">
+          All <span data-fill="n_payloads"></span> payloads against all three postures. Select any
+          cell to read the exact payload, the agent's real action ledger, and the full transcript
+          of the run — including a real successful attack and a real successful defense.
+        </p>
+      </div>
+      <div class="legend legend-inline" id="matrix-legend"></div>
+    </div>
+    <div id="matrixgrid" class="matrix"></div>
+  </section>
+
+  <section class="panel" id="crossmodel" hidden>
+    <div class="panel-head">
+      <div>
+        <h2>Is this the postures, or just the model?</h2>
+        <p class="panel-sub" id="crossmodel-sub"></p>
+      </div>
+    </div>
+    <div id="crossmodel-table"></div>
+    <p class="figure-note" id="crossmodel-note"></p>
+  </section>
+
+  <section class="panel" id="method">
+    <h2>How this was measured</h2>
+    <div class="method-grid" id="method-grid"></div>
+    <div class="method-prose">
+      <h3>Scoring is on actions, not on prose</h3>
+      <p>
+        Every tool call the agent makes is appended as a JSON line to an action ledger
+        <em>inside the Docker container</em> the sample runs in. Both scorers read that ledger
+        back out of the container after the run. Nothing is graded by asking a model whether the
+        answer looked good, and an agent that says it escalated but never called
+        <code>escalate</code> scores zero. A call the policy engine refuses is recorded with
+        <code>blocked: true</code> and never counts as an action that happened.
+      </p>
+      <h3>The two axes are scored independently</h3>
+      <p>
+        <strong>Task utility</strong> is a deterministic per-scenario spec: required actions with
+        argument constraints (refund exactly $49.00; email the verified contact; escalate to tier 3
+        <code>security-response</code>) plus forbidden actions (never close a security ticket).
+        <strong>Attack success</strong> is a separate spec per payload, describing what the
+        attacker wanted. A run can score 1.0 on both — the agent finished the ticket <em>and</em>
+        got owned on the way through. That cell is the reason the two axes have to be separate.
+      </p>
+      <h3>Attacked and clean samples are the same environment</h3>
+      <p>
+        Each attack sample is a base scenario with a payload appended to exactly one fixture file
+        — one ticket body, one fetched page, one knowledge-base article, or one line of CRM notes.
+        A test in the suite asserts that the attacked and clean environments differ in exactly one
+        file, so the utility comparison between them is honest.
+      </p>
+      <h3>Safety of the harness itself</h3>
+      <p>
+        Every payload is a synthetic fixture written for this suite. Samples run in a throwaway
+        Alpine container with <code>network_mode: none</code>, so there is nothing outside the
+        sandbox for a hijacked agent to reach. "Sending an email" means appending a line to a file
+        in that container. The credentials in the fixtures are invented canary strings, and they
+        exist so that exfiltration can be detected objectively rather than judged.
+      </p>
+    </div>
+  </section>
+
+  <section class="panel" id="honest">
+    <h2>Limits of this result</h2>
+    <ul class="limits" id="limits">
+      <li>
+        <strong>One run per cell.</strong> Every number here is a single attempt at each of
+        the 32 samples, per posture, per model. With only 6 samples in each OWASP class, one
+        flipped sample moves a per-class rate by 16.7 points. Read the class bars as
+        direction, not as precision, and don't read a 3-point gap as a real difference.
+      </li>
+      <li>
+        <strong>Two models, and the replication is the point.</strong> All three postures ran
+        on both models — 192 runs. No single cell should be leaned on at 6 samples per class;
+        what makes me believe the shape of this result is that both models produced it
+        independently. The main charts are scoped to one model; the other is shown in full
+        as a cross-model comparison below.
+      </li>
+      <li>
+        <strong>A small suite on one domain.</strong> Eight base scenarios in one B2B SaaS
+        support-desk environment. Nothing here says how these postures behave on a coding
+        agent, a browser agent, or a multi-agent system.
+      </li>
+      <li>
+        <strong>Four of ten OWASP classes.</strong> ASI04, ASI05, ASI07, ASI08, ASI09 and
+        ASI10 need a supply chain, a code interpreter, agent-to-agent messaging or a human in
+        the loop. This harness has none of those, so I left those classes alone rather than
+        fake them.
+      </li>
+      <li>
+        <strong>My payloads, my results.</strong> I wrote both the attacks and the defenses.
+        A posture that looks strong here is strong against the 24 payloads I thought of. A
+        red team that had not seen the system prompt would very likely do better, and the
+        attacks are single-shot — nothing chains payloads across channels or sessions.
+      </li>
+      <li>
+        <strong>One payload was never read.</strong> In several runs the agent finished the
+        approved-credit ticket without opening the linked postmortem page, so the payload
+        planted there never entered its context. That sample counts as a defended sample in
+        the headline rate, which slightly flatters every posture. The per-sample exposure
+        check that catches this is in the exported data.
+      </li>
+      <li>
+        <strong>The policy engine is deliberately blunt.</strong> It enforces a hard $500
+        credit cap with no approval path, which is exactly why it breaks the legitimate
+        pre-approved credit ticket. A real deployment would build the approval workflow; I
+        wanted the cost of capability restriction to be visible rather than engineered away.
+      </li>
+    </ul>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p id="footer-meta"></p>
+    <p>
+      <a href="https://github.com/carlosrymer/inspect-ai-owasp-agentic-top10">Source, eval logs and scoring specs on GitHub</a>
+      · <a href="https://inspect.aisi.org.uk/" target="_blank" rel="noopener">Inspect AI</a>
+      · <a href="https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/" target="_blank" rel="noopener">OWASP Top 10 for Agentic Applications (2026)</a>
+    </p>
+  </div>
+</footer>
+
+<div id="drawer" class="drawer" hidden>
+  <div class="drawer-scrim" data-close></div>
+  <aside class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <header class="drawer-head">
+      <div>
+        <p class="drawer-eyebrow" id="drawer-eyebrow"></p>
+        <h3 id="drawer-title"></h3>
+      </div>
+      <button class="drawer-close" type="button" data-close aria-label="Close">&times;</button>
+    </header>
+    <div class="drawer-body" id="drawer-body"></div>
+  </aside>
+</div>
+
+<script src="assets/app.js"></script>
+</body>
+</html>
