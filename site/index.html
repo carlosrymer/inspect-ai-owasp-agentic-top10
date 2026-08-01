@@ -63,8 +63,9 @@
         <h2>Where each posture actually fails</h2>
         <p class="panel-sub">
           Attack success rate by OWASP class, 6 samples per class per posture. Lower is better.
-          This is the chart that shows hardening is not one thing: each defense covers a
-          different slice of the threat model, and one slice stays uncovered by all of them.
+          The naive agent refused every imperative-style payload — all 18 of ASI01, ASI02 and
+          ASI03 — with no defenses at all. Everything it lost, it lost to memory poisoning:
+          false statements of fact, which announce nothing and so give it nothing to refuse.
         </p>
       </div>
       <button class="table-toggle" type="button" data-table="classes-table">Table view</button>
