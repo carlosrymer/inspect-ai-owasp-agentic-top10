@@ -34,7 +34,8 @@ that is not multiple choice.
 - Cover **3–4 OWASP Top 10 for Agentic Applications (2026) classes** accurately, citing the
   real published list rather than inventing categories.
 - Evaluate **three defensive postures** on the identical suite so the tradeoff is visible
-  and quantified, not asserted.
+  and quantified, not asserted — and repeat the whole matrix on a second model to see whether
+  the posture effect reproduces or is an artifact of one model's training.
 - Make the result **auditable**: commit the `.eval` logs, derive every published number from
   them, and ship a site that reads the exported JSON rather than hard-coded figures.
 - Build with **Inspect's own abstractions**, so the repo doubles as a worked example of the
@@ -44,8 +45,9 @@ that is not multiple choice.
 
 - Not a red-team service or a general-purpose attack tool. Every payload is a synthetic
   fixture confined to a network-isolated container, targeting a fictional company.
-- Not a model leaderboard. The comparison of interest is posture-vs-posture; the model is a
-  variable I hold fixed and report, not the subject.
+- Not a model leaderboard. The comparison of interest is posture-vs-posture. The second
+  model is a replication control, not a contest: I report both, but the question is whether
+  the *posture* effect reproduces, not which model wins.
 - Not full OWASP coverage. Six of the ten classes need infrastructure this harness does not
   have, and I would rather cover four honestly than ten badly.
 - Not a statistically powered study. One run per cell, 6 samples per class.
@@ -73,6 +75,9 @@ Identity & Privilege Abuse, ASI06 Memory & Context Poisoning.
 **The postures.** `naive` (job description only), `hardened-prompt` (adds an explicit
 security policy), `guarded-tools` (adds tool-output quarantining and a runtime policy
 engine).
+
+**The scale actually run.** 3 postures x 2 models x 32 samples = 192 agent runs, 6 payloads
+per OWASP class.
 
 **The output.** Committed `.eval` logs, an exported JSON results bundle, and a static
 GitHub Pages site with the utility-vs-resilience scatter, per-class breakdown, a grid showing
@@ -128,10 +133,10 @@ The findings are reported in the README, including the two predictions I got wro
   comparison would be garbage. Mitigated by 128 offline tests that assert an ideal ledger
   scores 1.0 on every scenario and that a compromised ledger trips every attack check —
   all run before any model call.
-- **Open question:** how much of the resilience measured here is the model's general
-  instruction-hierarchy training rather than anything in my postures? The naive baseline is
-  the main control, and a partial second model gives a first read on it — but only on the two
-  prompt-level postures, since that provider's credit ran out mid-sweep.
+- **Answered, partly:** how much of the resilience is the model's own instruction-hierarchy
+  training rather than my postures? Running all three postures on a second model settled the
+  main question — the naive baseline already refuses every imperative payload on both models,
+  so that resilience is the model's, not mine. What my postures added was ASI06 coverage.
 - **Open question:** the policy engine catches out-of-policy *actions* but is blind to
   attacks that only need in-policy actions. That looks like a structural ceiling on runtime
   enforcement, and this suite can only hint at it.

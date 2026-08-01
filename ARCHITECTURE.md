@@ -169,14 +169,12 @@ on one plot.
 - **Single run per cell.** Every number is one attempt at each of 32 samples per posture per
   model. With 6 samples per class, one flipped sample moves a per-class rate by 16.7
   percentage points. The per-class bars should be read as direction, not precision.
-- **Two models, unequal coverage.** The full three-posture sweep ran on Kimi K3. Gemini 3.6
-  Flash has only the `naive` and `hardened-prompt` postures, because the Gemini API key ran
-  out of prepayment credit partway through the third run — the provider started returning
-  `429 RESOURCE_EXHAUSTED`, which Inspect retries with backoff, so the run stalled rather
-  than failing loudly. Rather than delete that data I kept it as a cross-model control on
-  the two postures it does cover, and the site scopes the main charts to the model that ran
-  every posture. This is also why `time_limit`/`working_limit` are now set in
-  `scripts/run_eval.py`.
+- **Two models, both complete.** All three postures ran on both Kimi K3 and Gemini 3.6
+  Flash — 6 runs, 192 samples in total. The Gemini `guarded-tools` run had to be repeated:
+  the first attempt stalled when the API key's prepayment credit ran out and the provider
+  began returning `429 RESOURCE_EXHAUSTED`, which Inspect retries with backoff, so the run
+  hung rather than failing loudly. That is why `time_limit` and `working_limit` are now set
+  in `scripts/run_eval.py`.
 - **The policy engine is deliberately blunt.** It enforces a hard $500 cap with no approval
   path, which is what makes it break the legitimate approved-credit ticket. A production
   version would implement the approval workflow; this one is a controlled stand-in for

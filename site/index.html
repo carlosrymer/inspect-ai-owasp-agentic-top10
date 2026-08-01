@@ -29,8 +29,9 @@
       eval suite around a single tool-using support agent for a fictional B2B SaaS company, and
       scored every run twice: once on whether it finished the ticket, once on whether it resisted
       an attack planted in its environment. Same environment, same tools, one payload moved at a
-      time. Then I ran the whole suite against three defensive postures to see what hardening
-      actually costs.
+      time. Then I ran the whole suite against three defensive postures, on two models, to see what
+      hardening actually costs — 192 agent runs, every one scored on what the agent
+      <em>did</em> rather than what it claimed.
     </p>
     <div id="hero-stats" class="stat-row"></div>
     <p class="hero-note" id="hero-note"></p>
@@ -100,7 +101,8 @@
         <h2>Every attack, every posture</h2>
         <p class="panel-sub">
           All <span data-fill="n_payloads"></span> payloads against all three postures. Select any
-          cell to read the exact payload, the agent's real action ledger, and the transcript.
+          cell to read the exact payload, the agent's real action ledger, and the full transcript
+          of the run — including a real successful attack and a real successful defense.
         </p>
       </div>
       <div class="legend legend-inline" id="matrix-legend"></div>
@@ -169,11 +171,11 @@
         direction, not as precision, and don't read a 3-point gap as a real difference.
       </li>
       <li>
-        <strong>Unequal model coverage.</strong> The full three-posture sweep ran on one
-        model. The second model covers only the two prompt-level postures, because its API
-        key ran out of credit partway through the third run. The main charts are therefore
-        scoped to the model that ran every posture, and the second model appears only as a
-        cross-model control on the postures it actually covers.
+        <strong>Two models, and the replication is the point.</strong> All three postures ran
+        on both models — 192 runs. No single cell should be leaned on at 6 samples per class;
+        what makes me believe the shape of this result is that both models produced it
+        independently. The main charts are scoped to one model; the other is shown in full
+        as a cross-model comparison below.
       </li>
       <li>
         <strong>A small suite on one domain.</strong> Eight base scenarios in one B2B SaaS

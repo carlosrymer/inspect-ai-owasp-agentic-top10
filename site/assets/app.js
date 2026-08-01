@@ -661,9 +661,9 @@
         color: postureColor[best.posture],
       },
       {
-        label: "Samples scored",
-        value: String(rows.reduce((n, r) => n + r.n_total, 0)),
-        sub: `${rows[0].n_total} samples × ${rows.length} postures`,
+        label: "Agent runs scored",
+        value: String(DATA.summary.reduce((n, r) => n + r.n_total, 0)),
+        sub: `${rows[0].n_total} samples × ${rows.length} postures × ${DATA.models.length} model${DATA.models.length > 1 ? "s" : ""}`,
         color: "var(--text-muted)",
       },
     ];
