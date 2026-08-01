@@ -114,7 +114,7 @@ def _transcript(sample) -> list[dict]:
     return out
 
 
-def collect(log_root: str) -> dict:
+def collect(log_root: str, primary_model: str | None = None) -> dict:
     paths = sorted(glob.glob(f"{log_root}/**/*.eval", recursive=True))
     if not paths:
         raise SystemExit(f"no .eval logs under {log_root}")
@@ -279,7 +279,13 @@ def collect(log_root: str) -> dict:
     postures_per_model = {
         m: {s["posture"] for s in summary if s["model"] == m} for m in models_seen
     }
-    primary = max(models_seen, key=lambda m: (len(postures_per_model[m]), -models_seen.index(m)))
+    if primary_model and primary_model in models_seen:
+        primary = primary_model
+    else:
+        primary = max(
+            models_seen,
+            key=lambda m: (len(postures_per_model[m]), -models_seen.index(m)),
+        )
 
     return {
         "results": {
@@ -322,9 +328,11 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--log-dir", default="logs")
     ap.add_argument("--out-dir", default="site/data")
+    # Pinned so the headline charts do not silently switch models when a new log lands.
+    ap.add_argument("--primary-model", default="openai-api/moonshot/kimi-k3")
     args = ap.parse_args()
 
-    bundle = collect(args.log_dir)
+    bundle = collect(args.log_dir, args.primary_model)
     out = Path(args.out_dir)
     out.mkdir(parents=True, exist_ok=True)
     (out / "results.json").write_text(json.dumps(bundle["results"], indent=1))

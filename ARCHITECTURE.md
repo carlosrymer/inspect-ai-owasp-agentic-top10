@@ -116,12 +116,18 @@ and outbound email restricted to the record's `verified_contacts` plus internal 
 
 ## Deployment
 
-The site is static and ships to GitHub Pages from `.github/workflows/deploy.yml` on every
-push to `main`, using `actions/configure-pages@v5` (with `enablement: true`),
-`upload-pages-artifact@v3` and `deploy-pages@v4`. The workflow uploads the `site/`
-directory as-is — there is no build step, no bundler and no dependency on any CDN, so the
-page has no external requests at all. A redeploy is triggered by pushing a change to
-`site/`, which in practice means re-running `scripts/export_results.py` after a new eval.
+The site is static and is served by GitHub Pages from the `gh-pages` branch.
+`scripts/publish_site.sh` copies `site/` onto that branch (plus a `.nojekyll` marker so the
+directory is served verbatim) and force-pushes it. There is no build step, no bundler and no
+dependency on any CDN, so the page makes no external requests at all.
+
+A redeploy is two commands: re-run `scripts/export_results.py` to regenerate
+`site/data/*.json` from the committed logs, then run `scripts/publish_site.sh`.
+
+An Actions workflow driving `actions/deploy-pages` would be the tidier mechanism. The
+credentials this repo is pushed with do not carry the `workflow` scope, so
+`.github/workflows/*` cannot be created at all — pushes containing one are rejected outright.
+Publishing a static directory to a branch needs no extra scope and produces the same result.
 
 ## Tech choices & rationale
 

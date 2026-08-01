@@ -267,7 +267,17 @@ vanilla HTML/CSS/JS with hand-rolled SVG charts, no build step and no external r
 
 ## Deployed via
 
-GitHub Pages, from `.github/workflows/deploy.yml` on every push to `main`.
+GitHub Pages, serving the `gh-pages` branch. `scripts/publish_site.sh` copies `site/`
+onto that branch and force-pushes it:
+
+```bash
+uv run python scripts/export_results.py --log-dir logs --out-dir site/data
+./scripts/publish_site.sh
+```
+
+An Actions workflow would be tidier, but the credentials this repo is pushed with do not
+carry the `workflow` scope, so `.github/workflows/*` cannot be created. The site is fully
+static with no build step, so publishing the directory to a branch loses nothing.
 
 ---
 Part of an ongoing series of small, real-world builds trialing frontier AI models, frameworks,
