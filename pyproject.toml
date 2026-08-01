@@ -1,0 +1,20 @@
+[project]
+name = "owasp-agentic-eval"
+version = "0.1.0"
+description = "Inspect AI eval suite: task utility vs. attack resilience for a tool-using support agent, across OWASP Agentic Top 10 (2026) classes and defensive postures."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "google-genai>=2.16.0",
+    "inspect-ai>=0.3.251",
+    "openai>=2.52.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

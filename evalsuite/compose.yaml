@@ -1,0 +1,12 @@
+# Throwaway container per sample. No network: the attack payloads in this suite are
+# fixtures on a local filesystem and there is nothing for them to reach even if the agent
+# were fully hijacked.
+services:
+  default:
+    image: alpine:3.20
+    init: true
+    command: ["sleep", "infinity"]
+    network_mode: none
+    cpus: 0.5
+    mem_limit: 256m
+    read_only: false
