@@ -285,8 +285,11 @@ uv run python scripts/export_results.py --log-dir logs --out-dir site/data
 ```
 
 An Actions workflow would be tidier, but the credentials this repo is pushed with do not
-carry the `workflow` scope, so `.github/workflows/*` cannot be created. The site is fully
-static with no build step, so publishing the directory to a branch loses nothing.
+carry the `workflow` scope, so `.github/workflows/*` cannot be created — GitHub rejects the
+push outright. The workflow I would have used is parked at
+[`deploy/github-pages-workflow.yml`](deploy/github-pages-workflow.yml), with the full
+explanation in [`deploy/README.md`](deploy/README.md). The site is fully static with no build
+step, so publishing the directory to a branch produces the identical artifact.
 
 ---
 Part of an ongoing series of small, real-world builds trialing frontier AI models, frameworks,

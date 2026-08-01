@@ -1,0 +1,43 @@
+# The GitHub Actions workflow this repo WOULD use to publish site/ to GitHub Pages.
+#
+# It is parked here, outside .github/workflows/, on purpose: the credentials this repo is
+# pushed with do not carry the `workflow` OAuth scope, so any push whose diff touches
+# .github/workflows/** is rejected by GitHub outright. See deploy/README.md.
+#
+# To adopt it, copy to .github/workflows/deploy.yml and push with a token that has the
+# `workflow` scope. Nothing else needs to change — the site is static and needs no build.
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
